@@ -244,6 +244,32 @@ To expand recurring events into concrete dates, use a library like [rrule-go](ht
   }
 ```
 
+### Built-in occurrence expansion (opt-in, with provenance)
+
+This library also ships an opt-in API that expands a `VEVENT` into stably
+sorted instances over a window, keeping the evidence for *why* each instance
+exists (`DTSTART`, `RRULE`, `RDATE`, `EXDATE`, `RECURRENCE-ID`), preserving
+TZID/floating/UTC/all-day semantics, handling `COUNT`/`UNTIL`/`BYSETPOS`,
+missing month dates, leap days and DST gaps, and applying a mandatory instance
+cap that returns a distinguishable truncation result. It is opt-in and leaves
+the existing component read/write interfaces untouched.
+
+```golang
+series, err := ics.ExpandCalendar(cal, windowStart, windowEnd, 1000, ics.WithDiagnostics())
+if err != nil && !errors.Is(err, ics.ErrExpansionTruncated) {
+    log.Fatal(err)
+}
+for _, s := range series {
+    for _, inst := range s.Result.Instances {
+        // inst.Start (DateTime with Kind/TZID), inst.End, inst.Sources, inst.Override
+        _ = inst
+    }
+}
+```
+
+See [docs/event-expansion.md](docs/event-expansion.md) for the full reference
+and a complete cross-DST example with a `RECURRENCE-ID` override.
+
 ### Handling RECURRENCE-ID overrides
 
 Calendar feeds use `RECURRENCE-ID` to modify or cancel individual occurrences of a recurring event.
