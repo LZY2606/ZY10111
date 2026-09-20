@@ -171,6 +171,22 @@ Notes:
 This library parses and provides typed access to recurrence properties (`RRULE`, `RDATE`, `EXDATE`, `EXRULE`, `RECURRENCE-ID`) but does not expand them into concrete occurrence dates.
 This keeps the library dependency-free and lets callers choose their own expansion strategy.
 
+### Built-in occurrence expansion (opt-in)
+
+A dependency-free, opt-in expansion API can turn a `VEVENT` into a stable,
+windowed list of instances with per-instance source evidence (`DTSTART`,
+`RRULE`, `RDATE`), `EXDATE`/`EXRULE`/cancellation diagnostics, and
+`RECURRENCE-ID` overrides, while preserving `TZID`, floating, UTC and date-only
+semantics. See [Event expansion](docs/event-expansion.md) for the full guide and
+a cross-DST example.
+
+```golang
+  results, err := ics.ExpandCalendar(cal,
+      ics.WithWindow(ics.Window{From: from, To: to}),
+      ics.WithMaxInstances(1000),
+      ics.WithDiagnostics())
+```
+
 ### Accessing recurrence properties
 
 ```golang
